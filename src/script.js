@@ -35,7 +35,7 @@ container.appendChild(renderer.domElement) // add the renderer to html div
 
 /////////////////////////////////////////////////////////////////////////
 ///// CAMERAS CONFIG
-const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 100)
+const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 10000)
 camera.position.set(34,16,-20)
 scene.add(camera)
 
@@ -66,9 +66,21 @@ scene.add(sunLight)
 
 /////////////////////////////////////////////////////////////////////////
 ///// LOADING GLB/GLTF MODEL FROM BLENDER
-loader.load('models/gltf/starter-scene.glb', function (gltf) {
+let mixer; // Declare mixer outside to access it in the render loop
+loader.load('models/gltf/XE CONTAINER 2.glb', function (gltf) {
+    const model = gltf.scene; // Get the scene (3D model)
+    scene.add(gltf.scene);
+    console.log(gltf)
+    if (gltf.animations && gltf.animations.length > 0) {
+        // Create AnimationMixer
+        mixer = new THREE.AnimationMixer(model);
 
-    scene.add(gltf.scene)
+        // Play all animations (or select specific ones by index)
+        gltf.animations.forEach((clip) => {
+            const action = mixer.clipAction(clip);
+            action.play(); // Play the animation
+        });
+    }
 })
 
 /////////////////////////////////////////////////////////////////////////
@@ -77,14 +89,16 @@ function introAnimation() {
     controls.enabled = false //disable orbit controls to animate the camera
     
     new TWEEN.Tween(camera.position.set(26,4,-35 )).to({ // from camera position
-        x: 16, //desired x position to go
-        y: 50, //desired y position to go
-        z: -0.1 //desired z position to go
+        x: -181, //desired x position to go
+        y: 170, //desired y position to go
+        z: 284 //desired z position to go
     }, 6500) // time take to animate
     .delay(1000).easing(TWEEN.Easing.Quartic.InOut).start() // define delay, easing
     .onComplete(function () { //on finish animation
         controls.enabled = true //enable orbit controls
         setOrbitControlsLimits() //enable controls limits
+        controls.autoRotate = true; // enable auto-rotate
+        controls.autoRotateSpeed = 0.5; // set auto-rotate speed
         TWEEN.remove(this) // remove the animation from memory
     })
 }
@@ -97,18 +111,22 @@ function setOrbitControlsLimits(){
     controls.enableDamping = true
     controls.dampingFactor = 0.04
     controls.minDistance = 35
-    controls.maxDistance = 60
+    controls.maxDistance = 600
     controls.enableRotate = true
     controls.enableZoom = true
     controls.maxPolarAngle = Math.PI /2.5
 }
+const clock = new THREE.Clock(); // Initialize the clock
 
 /////////////////////////////////////////////////////////////////////////
 //// RENDER LOOP FUNCTION
 function rendeLoop() {
+    const deltaTime = clock.getDelta(); // Get the time between frames
 
     TWEEN.update() // update animations
-
+    if (mixer) {
+        mixer.update(deltaTime); // Update the mixer for animations
+    }
     controls.update() // update orbit controls
 
     renderer.render(scene, camera) // render the scene using the camera
@@ -118,3 +136,39 @@ function rendeLoop() {
 }
 
 rendeLoop() //start rendering
+
+import { GUI } from 'three/examples/jsm/libs/dat.gui.module.js'
+const gui = new GUI()
+
+// create parameters for GUI
+var params = {color: sunLight.color.getHex(), color2: ambient.color.getHex(), color3: scene.background.getHex()}
+
+// create a function to be called by GUI
+const update = function () {
+	var colorObj = new THREE.Color( params.color )
+	var colorObj2 = new THREE.Color( params.color2 )
+	var colorObj3 = new THREE.Color( params.color3 )
+	sunLight.color.set(colorObj)
+	ambient.color.set(colorObj2)
+	scene.background.set(colorObj3)
+}
+
+//////////////////////////////////////////////////
+//// GUI CONFIG
+gui.add(sunLight, 'intensity').min(0).max(10).step(0.0001).name('Dir intensity')
+gui.add(sunLight.position, 'x').min(-100).max(100).step(0.00001).name('Dir X pos')
+gui.add(sunLight.position, 'y').min(0).max(100).step(0.00001).name('Dir Y pos')
+gui.add(sunLight.position, 'z').min(-100).max(100).step(0.00001).name('Dir Z pos')
+gui.addColor(params,'color').name('Dir color').onChange(update)
+gui.addColor(params,'color2').name('Amb color').onChange(update)
+gui.add(ambient, 'intensity').min(0).max(10).step(0.001).name('Amb intensity')
+gui.addColor(params,'color3').name('BG color').onChange(update)
+
+//////////////////////////////////////////////////
+//// ON MOUSE MOVE TO GET CAMERA POSITION
+document.addEventListener('mousemove', (event) => {
+    event.preventDefault()
+
+    // console.log(camera.position)
+
+}, false)

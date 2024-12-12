@@ -91,7 +91,7 @@ scene.add(sunLight);
 let modelCenter = new THREE.Vector3(); // Vector to store the center of the model
 
 let mixer; // Declare mixer outside to access it in the render loop
-loader.load("models/gltf/starter-scene.glb", function (gltf) {
+loader.load("models/gltf/danon.glb", function (gltf) {
   const model = gltf.scene; // Get the scene (3D model)
   scene.add(gltf.scene);
 

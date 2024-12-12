@@ -139,9 +139,9 @@ function introAnimation() {
     .to(
       {
         // from camera position
-        x: -181, //desired x position to go
-        y: 170, //desired y position to go
-        z: 284, //desired z position to go
+        x: -115, //desired x position to go
+        y: 109, //desired y position to go
+        z: 199, //desired z position to go
       },
       6500
     ) // time take to animate
@@ -226,7 +226,7 @@ rendeLoop(); //start rendering
 // document.addEventListener('mousemove', (event) => {
 //     event.preventDefault()
 
-//     // console.log(camera.position)
+//     console.log(camera.position)
 
 // }, false)
 

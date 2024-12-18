@@ -2,10 +2,13 @@
 ///// IMPORT
 import "./main.css";
 import * as THREE from "three";
-import { TWEEN } from "three/examples/jsm/libs/tween.module.min.js";
+// import * as TWEEN from "three/examples/jsm/libs/tween.module.min.js";
+import * as TWEEN from "three/examples/jsm/libs/tween.module.js";
+
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { ViewportGizmo } from "three-viewport-gizmo";
 
 /////////////////////////////////////////////////////////////////////////
 //// DRACO LOADER TO LOAD DRACO COMPRESSED MODELS FROM BLENDER
@@ -33,7 +36,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true }); // turn on antial
 
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); //set pixel ratio
 renderer.setSize(window.innerWidth, window.innerHeight); // make it full screen
-renderer.outputEncoding = THREE.sRGBEncoding; // set color encoding
+// renderer.outputEncoding = THREE.sRGBEncoding; // set color encoding
 container.appendChild(renderer.domElement); // add the renderer to html div
 
 /////////////////////////////////////////////////////////////////////////
@@ -57,11 +60,15 @@ window.addEventListener("resize", () => {
 
   renderer.setSize(width, height);
   renderer.setPixelRatio(2);
+  gizmo.update();
+
 });
 
 /////////////////////////////////////////////////////////////////////////
 ///// CREATE ORBIT CONTROLS
 const controls = new OrbitControls(camera, renderer.domElement);
+const gizmo = new ViewportGizmo(camera, renderer,{size:100});
+gizmo.attachControls(controls);
 
 /////////////////////////////////////////////////////////////////////////
 ///// SCENE LIGHTS
@@ -202,6 +209,8 @@ function rendeLoop() {
   renderer.render(scene, camera); // render the scene using the camera
 
   requestAnimationFrame(rendeLoop); //loop the render function
+  gizmo.render();
+
 }
 
 rendeLoop(); //start rendering
